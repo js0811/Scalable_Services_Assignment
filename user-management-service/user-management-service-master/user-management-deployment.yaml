@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-management-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-management
+  template:
+    metadata:
+      labels:
+        app: user-management
+    spec:
+      containers:
+        - name: user-management
+          # Replace with your Docker Hub username
+          image: jaskaran/user-management-service:latest
+          ports:
+            - containerPort: 3001
+          env: # Environment variables for database connection
+            - name: MONGODB_URI
+              value: "mongodb://<your-mongodb-host>:<port>/languageLearningDB"
+          # Add more environment variables if needed (e.g., JWT secret key)

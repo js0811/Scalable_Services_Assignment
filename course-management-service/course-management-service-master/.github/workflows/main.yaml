@@ -1,0 +1,32 @@
+name: Course Management CI/CD
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build and push Docker image
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_IMAGE_NAME: course-management-service
+        run: |
+          docker build -t $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:latest .
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:latest
+
+      - name: Deploy to Kubernetes
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+          DEPLOYMENT_NAME: course-management-deployment
+          SERVICE_NAME: course-management-service
+        run: |
+          echo "$KUBECONFIG" | base64 -d > kubeconfig
+          kubectl apply -f course-management-deployment.yaml
+          kubectl apply -f course-management-service.yaml
